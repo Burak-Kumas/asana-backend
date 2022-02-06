@@ -1,5 +1,5 @@
 const mongoose = require("mongoose");
-
+const logger = require("../scripts/logger/Projects");
 const ProjectSchema = new mongoose.Schema(
   {
     name: String,
@@ -8,7 +8,17 @@ const ProjectSchema = new mongoose.Schema(
     //     ref: "user"
     // }
   },
-  { versionKey: false, timestamps:true}
+  { versionKey: false, timestamps: true }
 );
 
+// ProjectSchema.pre("save", (next, doc) => {
+//   console.log("öncesi", doc);
+//   next();
+// });
+ProjectSchema.post("save", (doc) => {
+  logger.log({
+    level: "info",
+    message: doc,
+  });
+});
 module.exports = mongoose.model("project", ProjectSchema);
