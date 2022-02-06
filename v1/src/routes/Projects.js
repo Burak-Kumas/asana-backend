@@ -6,6 +6,6 @@ const validate = require("../middleware/validate");
 const schemas = require("../validations/Projects");
 
 router.route("/").get(authenticate, index);
-router.route("/").post(validate(schemas.createValidation), create);
+router.route("/").post(authenticate, validate(schemas.createValidation), create);
 
 module.exports = router;
