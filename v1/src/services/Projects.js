@@ -1,7 +1,7 @@
 const Project = require("../models/Projects");
 
-const insert = (projectData) => {
-  const project = new Project(projectData);
+const insert = (data) => {
+  const project = new Project(data);
   return project.save();
 };
 const list = () => {
@@ -10,5 +10,5 @@ const list = () => {
 
 module.exports = {
   insert,
-  list
+  list,
 };

@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const logger = require("../scripts/logger/Projects");
+
 const ProjectSchema = new mongoose.Schema(
   {
     name: String,
