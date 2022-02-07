@@ -19,7 +19,7 @@ const login = (req, res) => {
     .then((user) => {
       if (!user)
         return res.status(httpStatus.NOT_FOUND).send({
-          message: "Kullanıcı Bulunamadı",
+          message: "User Not Found",
         });
       user = {
         ...user.toObject(),
