@@ -1,5 +1,15 @@
-const { insert, list } = require("../services/Projects");
+const { insert, modify, list } = require("../services/Projects");
 const httpStatus = require("http-status");
+
+const index = (req, res) => {
+  list()
+    .then((response) => {
+      res.status(httpStatus.OK).send(response);
+    })
+    .catch((err) => {
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
+    });
+};
 
 const create = (req, res) => {
   req.body.user_id = req.user;
@@ -11,19 +21,23 @@ const create = (req, res) => {
       res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
     });
 };
-
-const index = (req, res) => {
-  console.log("req :>> ", req.user);
-  list()
-    .then((response) => {
-      res.status(httpStatus.OK).send(response);
+const update = (req, res) => {
+  if (!req.params?.id) {
+    return res.status(httpStatus.BAD_REQUEST).send({
+      message: "User ID is incorrect",
+    });
+  }
+  modify(req.params?.id, req.body)
+    .then((updatedProject) => {
+      res.status(httpStatus.OK).send(updatedProject);
     })
-    .catch((err) => {
-      res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
+    .catch((e) => {
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: "Modify Error" });
     });
 };
 
 module.exports = {
   create,
   index,
+  update,
 };
