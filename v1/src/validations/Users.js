@@ -12,9 +12,13 @@ const loginValidation = Joi.object({
 const resetPasswordValidation = Joi.object({
   email: Joi.string().email().required().trim(),
 });
-
+const updateValidation = Joi.object({
+  full_name: Joi.string().min(3).trim(),
+  email: Joi.string().email().trim(),
+});
 module.exports = {
   createValidation,
   loginValidation,
   resetPasswordValidation,
+  updateValidation
 };
