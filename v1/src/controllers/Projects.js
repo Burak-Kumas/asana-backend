@@ -1,4 +1,4 @@
-const { insert, modify, list } = require("../services/Projects");
+const { insert, modify, list, remove } = require("../services/Projects");
 const httpStatus = require("http-status");
 
 const index = (req, res) => {
@@ -21,6 +21,7 @@ const create = (req, res) => {
       res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
     });
 };
+
 const update = (req, res) => {
   if (!req.params?.id) {
     return res.status(httpStatus.BAD_REQUEST).send({
@@ -36,8 +37,29 @@ const update = (req, res) => {
     });
 };
 
+const deleteProject = (req, res) => {
+  if (!req.params?.id) {
+    return res.status(httpStatus.BAD_REQUEST).send({
+      message: "User ID is incorrect",
+    });
+  }
+  remove(req.params?.id, req.body)
+    .then((deletedProject) => {
+      if (!deletedProject) {
+        return res.status(httpStatus.NOT_FOUND).send({
+          message: "Kullanıcı Bulunamadı",
+        });
+      }
+      res.status(httpStatus.OK).send(deletedProject);
+    })
+    .catch((e) => {
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: "Modify Error" });
+    });
+};
+
 module.exports = {
   create,
   index,
   update,
+  deleteProject,
 };

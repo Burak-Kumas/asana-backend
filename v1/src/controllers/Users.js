@@ -1,10 +1,10 @@
-const { insert, list, loginUser, modify } = require("../services/Users");
+const { insert, list, loginUser, modify, remove } = require("../services/Users");
+const { passwordToHash, generateAccessToken, generateRefreshToken } = require("../scripts/utils/helper");
 const projectService = require("../services/Projects");
 const httpStatus = require("http-status");
-const { passwordToHash, generateAccessToken, generateRefreshToken } = require("../scripts/utils/helper");
 const uuid = require("uuid");
 const eventEmitter = require("../scripts/events/eventEmitter");
-const { http } = require("../scripts/logger/Projects");
+const path = require("path");
 
 const index = (req, res) => {
   list()
@@ -92,6 +92,56 @@ const update = (req, res) => {
     });
 };
 
+const changePassword = (req, res) => {
+  req.body.password = passwordToHash(req.body.password);
+  modify({ _id: req.user?._id }, req.body)
+    .then((updatedUser) => {
+      res.status(httpStatus.OK).send(updatedUser);
+    })
+    .catch(() => {
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: "Şifre Güncelleme işlemi sırasında bir hata çıktı" });
+    });
+};
+
+const deleteUser = (req, res) => {
+  if (!req.params?.id) {
+    return res.status(httpStatus.BAD_REQUEST).send({
+      message: "User ID is incorrect",
+    });
+  }
+  remove(req.params?.id)
+    .then((deletedUser) => {
+      if (!deletedUser) {
+        return res.status(httpStatus.NOT_FOUND).send({
+          message: "Kullanıcı Bulunamadı",
+        });
+      }
+      res.status(httpStatus.OK).send(deletedUser);
+    })
+    .catch((e) => {
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: "Kayıt Silinirken Hata Çıktı" });
+    });
+};
+
+const updateProfilImage = (req, res) => {
+  if (!req?.files?.profile_image) return res.status(httpStatus.BAD_REQUEST).send({ error: "Görsel bulunamamaktadır." });
+  const extension = path.extname(req.files.profile_image.name);
+  const fileName = `${req?.user._id}${extension}`;
+  const folderPath = path.join(__dirname, "../", "uploads/users", fileName);
+  req.files.profile_image.mv(folderPath, function (err) {
+    if (err) return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: err });
+    modify({ _id: req.user._id }, { profile_image: fileName })
+      .then((updatedUser) => {
+        res.status(httpStatus.OK).send(updatedUser);
+      })
+      .catch((err) => {
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send({
+          error: "upload işlemi başarılı fakat güncelleme işleminda hata oluştu",
+        });
+      });
+  });
+};
+
 module.exports = {
   create,
   index,
@@ -99,4 +149,7 @@ module.exports = {
   projectList,
   resetPassword,
   update,
+  deleteUser,
+  changePassword,
+  updateProfilImage,
 };
