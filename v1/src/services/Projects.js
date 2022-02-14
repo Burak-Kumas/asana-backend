@@ -1,8 +1,7 @@
 const Project = require("../models/Projects");
 
 const insert = (data) => {
-  const project = new Project(data);
-  return project.save();
+  return new Project(data).save();
 };
 const list = (where) => {
   return Project.find(where || {}).populate({
@@ -22,5 +21,5 @@ module.exports = {
   insert,
   list,
   modify,
-  remove
+  remove,
 };
