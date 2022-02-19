@@ -47,3 +47,5 @@ jspm_packages/
 ### Node Patch ###
 # Serverless Webpack directories
 .webpack/
+
+upload

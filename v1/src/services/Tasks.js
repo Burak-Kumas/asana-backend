@@ -22,8 +22,24 @@ const remove = (id) => {
   return Task.findByIdAndDelete(id);
 };
 
-const findOne = (where) => {
-  return Task.findOne(where);
+const findOne = (where, expand) => {
+  if (!expand) return Task.findOne(where);
+  return Task.findOne(where)
+    .populate({
+      path: "user_id",
+      select: "full_name email profile_image",
+    })
+    .populate({
+      path: "comments",
+      populate: {
+        path: "user_id",
+        select: "full_name email profile_image",
+      },
+    })
+    .populate({
+      path: "sub_tasks",
+      select: "title description assigned_to isCompleted due_date sub_tasks order statuses",
+    });
 };
 
 module.exports = {
@@ -31,5 +47,5 @@ module.exports = {
   list,
   modify,
   remove,
-  findOne
+  findOne,
 };

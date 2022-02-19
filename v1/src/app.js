@@ -4,9 +4,9 @@ const helmet = require("helmet");
 const config = require("./config");
 const loaders = require("./loaders");
 const events = require("./scripts/events");
-const { ProjectRoutes, UserRoutes, SectionRoutes, TaskRoutes } = require("./routes");
 const path = require("path");
 const app = express();
+const { ProjectRoutes, UserRoutes, SectionRoutes, TaskRoutes } = require("./routes");
 
 config();
 loaders();
