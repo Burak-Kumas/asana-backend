@@ -1,13 +1,15 @@
-const { insert, list, loginUser, modify, remove } = require("../services/Users");
 const { passwordToHash, generateAccessToken, generateRefreshToken } = require("../scripts/utils/helper");
-const projectService = require("../services/Projects");
 const httpStatus = require("http-status");
 const uuid = require("uuid");
 const eventEmitter = require("../scripts/events/eventEmitter");
 const path = require("path");
+const Service = require("../services/Users");
+const UserService = new Service();
+const ProjectsService = require("../services/Projects");
+const ProjectService = new ProjectsService();
 
 const index = (req, res) => {
-  list()
+  UserService.list()
     .then((response) => {
       res.status(httpStatus.OK).send(response);
     })
@@ -18,7 +20,7 @@ const index = (req, res) => {
 
 const create = (req, res) => {
   req.body.password = passwordToHash(req.body.password);
-  insert(req.body)
+  UserService.create(req.body)
     .then((response) => {
       res.status(httpStatus.CREATED).send(response);
     })
@@ -29,7 +31,7 @@ const create = (req, res) => {
 
 const login = (req, res) => {
   req.body.password = passwordToHash(req.body.password);
-  loginUser(req.body)
+  UserService.findOne(req.body)
     .then((user) => {
       if (!user)
         return res.status(httpStatus.NOT_FOUND).send({
@@ -51,8 +53,7 @@ const login = (req, res) => {
 };
 
 const projectList = (req, res) => {
-  projectService
-    .list({ user_id: req.user?._id })
+  ProjectService.list({ user_id: req.user?._id })
     .then((projects) => {
       res.status(httpStatus.OK).send(projects);
     })
@@ -65,7 +66,7 @@ const projectList = (req, res) => {
 
 const resetPassword = (req, res) => {
   const new_password = uuid.v4()?.split("-")[0] || new Date().getTime();
-  modify({ email: req.body.email }, { password: passwordToHash(new_password) })
+  UserService.updateWhere({ email: req.body.email }, { password: passwordToHash(new_password) })
     .then((updatedUser) => {
       if (!updatedUser) return res.status(httpStatus.NOT_FOUND).send({ error: "Kullanıcı bulunamadı" });
       eventEmitter.emit("send_email", {
@@ -83,7 +84,7 @@ const resetPassword = (req, res) => {
 };
 
 const update = (req, res) => {
-  modify({ _id: req.user?._id }, req.body)
+  UserService.update({ _id: req.user?._id }, req.body)
     .then((updatedUser) => {
       res.status(httpStatus.OK).send(updatedUser);
     })
@@ -94,7 +95,7 @@ const update = (req, res) => {
 
 const changePassword = (req, res) => {
   req.body.password = passwordToHash(req.body.password);
-  modify({ _id: req.user?._id }, req.body)
+  UserService.updateWhere({ _id: req.user?._id }, req.body)
     .then((updatedUser) => {
       res.status(httpStatus.OK).send(updatedUser);
     })
@@ -109,7 +110,7 @@ const deleteUser = (req, res) => {
       message: "User ID is incorrect",
     });
   }
-  remove(req.params?.id)
+  UserService.delete(req.params?.id)
     .then((deletedUser) => {
       if (!deletedUser) {
         return res.status(httpStatus.NOT_FOUND).send({
@@ -130,7 +131,7 @@ const updateProfilImage = (req, res) => {
   const folderPath = path.join(__dirname, "../", "uploads/users", fileName);
   req.files.profile_image.mv(folderPath, function (err) {
     if (err) return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: err });
-    modify({ _id: req.user._id }, { profile_image: fileName })
+    UserService.update(req.user._id, { profile_image: fileName })
       .then((updatedUser) => {
         res.status(httpStatus.OK).send(updatedUser);
       })

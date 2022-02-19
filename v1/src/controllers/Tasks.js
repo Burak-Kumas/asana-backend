@@ -1,11 +1,11 @@
-const { insert, modify, list, remove, findOne } = require("../services/Tasks");
 const httpStatus = require("http-status");
-//const mongoose = require("mongoose");
+const Service = require("../services/Tasks");
+const TaskService = new Service();
 
 const index = (req, res) => {
   if (!req?.params?.project_id)
     return res.status(httpStatus.BAD_REQUEST).send({ error: "Task getirilirken hata çıktı" });
-  list({ project_id: req.params.project_id })
+  TaskService.list({ project_id: req.params.project_id })
     .then((response) => {
       res.status(httpStatus.OK).send(response);
     })
@@ -16,7 +16,7 @@ const index = (req, res) => {
 
 const create = (req, res) => {
   req.body.user_id = req.user;
-  insert(req.body)
+  TaskService.create(req.body)
     .then((response) => {
       res.status(httpStatus.CREATED).send(response);
     })
@@ -31,7 +31,7 @@ const update = (req, res) => {
       message: "User ID is incorrect",
     });
   }
-  modify(req.params?.id, req.body)
+  TaskService.update(req.params?.id, req.body)
     .then((updatedDoc) => {
       res.status(httpStatus.OK).send(updatedDoc);
     })
@@ -42,7 +42,7 @@ const update = (req, res) => {
 
 const deleteTask = (req, res) => {
   if (!req.params?.id) return res.status(httpStatus.BAD_REQUEST).send({ message: "User ID is incorrect" });
-  remove(req.params?.id, req.body)
+  TaskService.delete(req.params?.id, req.body)
     .then((deletedTask) => {
       if (!deletedTask) {
         return res.status(httpStatus.NOT_FOUND).send({
@@ -57,7 +57,7 @@ const deleteTask = (req, res) => {
 };
 
 const makeComment = (req, res) => {
-  findOne({ _id: req.params.id })
+  TaskService.findOne({ _id: req.params.id })
     .then((mainTask) => {
       if (!mainTask) return res.status(httpStatus.NOT_FOUND).send({ error: "Kayıt Bulunamadı" });
       const comment = {
@@ -81,7 +81,7 @@ const makeComment = (req, res) => {
 };
 
 const deleteComment = (req, res) => {
-  findOne({ _id: req.params.id })
+  TaskService.findOne({ _id: req.params.id })
     .then((mainTask) => {
       if (!mainTask) return res.status(httpStatus.NOT_FOUND).send({ error: "Kayıt Bulunamadı" });
 
@@ -105,10 +105,10 @@ const addSubTask = (req, res) => {
     return res.status(httpStatus.BAD_REQUEST).send({
       message: "User ID is incorrect",
     });
-  findOne({ _id: req.params.id })
+  TaskService.findOne({ _id: req.params.id })
     .then((mainTask) => {
       if (!mainTask) return res.status(httpStatus.NOT_FOUND).send({ error: "Not Found" });
-      insert({ ...req.body, user_id: req.user })
+      TaskService.create({ ...req.body, user_id: req.user })
         .then((subTask) => {
           mainTask.sub_tasks.push(subTask);
           mainTask
@@ -130,7 +130,7 @@ const addSubTask = (req, res) => {
 };
 const showTask = (req, res) => {
   if (!req.params.id) return res.status(httpStatus.BAD_REQUEST).send({ error: "User ID is incorrect" });
-  findOne({ _id: req.params.id }, true)
+  TaskService.findOne({ _id: req.params.id }, true)
     .then((task) => {
       if (!task) return res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: "Task Not Found" });
       res.status(httpStatus.OK).send(task);

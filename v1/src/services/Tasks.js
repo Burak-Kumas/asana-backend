@@ -1,51 +1,40 @@
-const Task = require("../models/Tasks");
-
-const insert = (data) => {
-  return new Task(data).save();
-};
-const list = (where) => {
-  return Task.find(where || {})
-    .populate({
-      path: "user_id",
-      select: "full_name email profile_image",
-    })
-    .populate({
-      path: "project_id",
-      select: "name",
-    });
-};
-
-const modify = (id, data) => {
-  return Task.findByIdAndUpdate(id, data, { new: true });
-};
-const remove = (id) => {
-  return Task.findByIdAndDelete(id);
-};
-
-const findOne = (where, expand) => {
-  if (!expand) return Task.findOne(where);
-  return Task.findOne(where)
-    .populate({
-      path: "user_id",
-      select: "full_name email profile_image",
-    })
-    .populate({
-      path: "comments",
-      populate: {
+const BaseService = require("./BaseService");
+const BaseModel = require("../models/Tasks");
+class Tasks extends BaseService {
+  constructor() {
+    super(BaseModel);
+  }
+  list(where) {
+    return BaseModel.find(where || {})
+      .populate({
+        path: "user_id",
+        select: "full_name email profile_image",
+      })
+      .populate({
+        path: "project_id",
+        select: "name",
+      });
+  }
+  findOne(where, expand) {
+    if (!expand) return BaseModel.findOne(where);
+    return BaseModel.findOne(where).populate([
+      {
         path: "user_id",
         select: "full_name email profile_image",
       },
-    })
-    .populate({
-      path: "sub_tasks",
-      select: "title description assigned_to isCompleted due_date sub_tasks order statuses",
-    });
-};
+      {
+        path: "comments",
+        populate: {
+          path: "user_id",
+          select: "full_name email profile_image",
+        },
+      },
 
-module.exports = {
-  insert,
-  list,
-  modify,
-  remove,
-  findOne,
-};
+      {
+        path: "sub_tasks",
+        select: "title description assigned_to isCompleted due_date sub_tasks order statuses",
+      },
+    ]);
+  }
+}
+module.exports = Tasks;
