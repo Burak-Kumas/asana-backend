@@ -1,10 +1,11 @@
 const express = require("express");
 const fileUpload = require("express-fileupload");
 const helmet = require("helmet");
+const path = require("path");
 const config = require("./config");
 const loaders = require("./loaders");
 const events = require("./scripts/events");
-const path = require("path");
+
 const app = express();
 const { ProjectRoutes, UserRoutes, SectionRoutes, TaskRoutes } = require("./routes");
 
