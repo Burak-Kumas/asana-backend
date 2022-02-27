@@ -1,14 +1,14 @@
 const httpStatus = require("http-status");
 const ProjectService = require("../services/Projects");
-
+const ApiError = require("../errors/errors");
 class Project {
   index(req, res) {
     ProjectService.list()
       .then((response) => {
         res.status(httpStatus.OK).send(response);
       })
-      .catch((err) => {
-        res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
+      .catch((e) => {
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
       });
   }
 
@@ -18,12 +18,12 @@ class Project {
       .then((response) => {
         res.status(httpStatus.CREATED).send(response);
       })
-      .catch((err) => {
-        res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err);
+      .catch((e) => {
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
       });
   }
 
-  update(req, res) {
+  update(req, res, next) {
     if (!req.params?.id) {
       return res.status(httpStatus.BAD_REQUEST).send({
         message: "User ID is incorrect",
@@ -31,10 +31,11 @@ class Project {
     }
     ProjectService.update(req.params?.id, req.body)
       .then((updatedProject) => {
+        if (!updatedProject) return next(new ApiError("Böyle Bir kayıt bulunmamaktadır.", 404));
         res.status(httpStatus.OK).send(updatedProject);
       })
       .catch((e) => {
-        res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: "Modify Error" });
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
       });
   }
 
@@ -54,7 +55,7 @@ class Project {
         res.status(httpStatus.OK).send(deletedProject);
       })
       .catch((e) => {
-        res.status(httpStatus.INTERNAL_SERVER_ERROR).send({ error: "Modify Error" });
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send(e);
       });
   }
 }

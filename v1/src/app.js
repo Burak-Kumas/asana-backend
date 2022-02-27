@@ -8,6 +8,7 @@ const events = require("./scripts/events");
 
 const app = express();
 const { ProjectRoutes, UserRoutes, SectionRoutes, TaskRoutes } = require("./routes");
+const errorHandler = require("./middleware/errorHandler");
 
 config();
 loaders();
@@ -23,4 +24,10 @@ app.listen(process.env.APP_PORT, () => {
   app.use("/users", UserRoutes);
   app.use("/sections", SectionRoutes);
   app.use("/tasks", TaskRoutes);
+  app.use((req, res, next) => {
+    const error = new Error("Not Found");
+    error.status = 404;
+    next(error);
+  });
+  app.use(errorHandler);
 });
